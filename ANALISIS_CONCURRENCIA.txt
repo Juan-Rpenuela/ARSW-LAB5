@@ -1,0 +1,63 @@
+ANALISIS DE CONCURRENCIA - BlueprintsRESTAPI
+
+1. Posibles condiciones de carrera identificadas
+------------------------------------------------
+1.1. Inserción de nuevos planos (saveBlueprint / addNewBlueprint)
+     Antes: Uso de HashMap no thread-safe y patrón de verificación "containsKey -> put" susceptible a race condition:
+       T1: containsKey(key) == false
+       T2: containsKey(key) == false
+       T1: put(key, bp1)
+       T2: put(key, bp2)  -> Duplicado no detectado.
+
+1.2. Lecturas concurrentes mientras se escribe
+     - Iteraciones sobre values() podían ver estado intermedio si otra hebra modificaba.
+     - HashMap puede entrar en estado inconsistente bajo escritura concurrente (riesgo de bucle infinito o pérdida de datos).
+
+1.3. Filtro y mutabilidad de Blueprint
+     - El objeto Blueprint expone su lista de puntos mutable. Si en el futuro se agregan operaciones que modifiquen puntos concurrentemente podría haber visibilidad inconsistente.
+
+2. Regiones críticas
+--------------------
+2.1. Sección crítica original: bloque lógico (containsKey + put) en saveBlueprint.
+2.2. Acceso simultáneo a estructura blueprints (HashMap) para getAllBlueprints / getBlueprint / getBlueprintsByAuthor.
+
+3. Estrategia adoptada (evitar degradación por sincronización gruesa)
+--------------------------------------------------------------------
+3.1. Reemplazo de HashMap por ConcurrentHashMap.
+     Justificación: provee seguridad de concurrencia a nivel de segmentos internos, minimizando bloqueos globales.
+
+3.2. Uso de operación atómica putIfAbsent en lugar de (containsKey + put).
+     Beneficio: atomicidad garantizada sin necesidad de synchronized explícito. Elimina la ventana de carrera para duplicados.
+
+3.3. Lecturas (get / values / stream) sobre ConcurrentHashMap.
+     - Las vistas devueltas son weakly consistent: no bloquean escritores y no lanzan ConcurrentModificationException.
+     - Aceptable para el caso (no se exige snapshot perfecto), garantiza ausencia de corrupción estructural.
+
+3.4. Excepciones específicas
+     - Lanza BlueprintNotFoundException cuando autor o plano no existen. Permite distinguir flujos de control sin depender de null.
+
+4. Alternativas consideradas
+----------------------------
+4.1. synchronized (this) alrededor de todas las operaciones: descartado por reducción de paralelismo (cuello de botella).
+4.2. ReadWriteLock: viable, pero más complejo que usar ConcurrentHashMap, cuyo rendimiento en lecturas es mejor y simplicidad mayor.
+4.3. CopyOnWriteMap: ineficiente para escenarios con escrituras moderadas.
+
+5. Posibles mejoras futuras
+---------------------------
+5.1. Inmutabilidad de Blueprint: convertir lista interna a Collections.unmodifiableList para mejorar seguridad en concurrencia.
+5.2. Cache de resultados filtrados por autor si el filtro se hace costoso, usando estructuras concurrentes adicionales.
+5.3. Validar tamaño y aplicar políticas de expiración si crece demasiado.
+
+6. Resumen de cambios aplicados
+-------------------------------
+- Cambiado HashMap -> ConcurrentHashMap.
+- Implementado putIfAbsent para inserción atómica.
+- Ajustada lógica de excepciones para blueprint/autor inexistente.
+- Ajustados códigos HTTP de respuestas GET a 202 (Accepted) según criterio.
+
+7. Verificación
+---------------
+Escenario de carrera prevenido: dos hilos intentando registrar mismo (author,name) simultáneamente:
+  - Sólo uno obtendrá null en putIfAbsent; el segundo recibirá el objeto previo y se lanza BlueprintPersistenceException.
+Lecturas no bloquean escrituras y viceversa, manteniendo mayor throughput.
+
