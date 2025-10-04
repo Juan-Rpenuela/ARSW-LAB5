@@ -107,17 +107,6 @@ Este proyecto implementa un cliente web (“cliente grueso”) que consume un AP
 	 ```
 4. Usar la consola del navegador para depuración y pruebas de los módulos.
 
----
-
-## Mejoras y Siguientes Pasos
-
-- Validación de errores y mensajes al usuario.
-- Mejorar la experiencia visual con más componentes de Bootstrap.
-- Implementar autenticación y autorización.
-- Pruebas automáticas de frontend (Jest, Jasmine) y backend (JUnit).
-
----
-
 ## Autores
 
 - Juan-Rpenuela
