@@ -10,6 +10,7 @@
     <link rel="stylesheet"
       href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css" />
     <script src="js/apimock.js"></script>
+    <script src="js/apiclient.js"></script>
     <script src="js/app.js"></script>
 </head>
 <body>
@@ -19,6 +20,9 @@
             <label for="author">Autor:</label>
             <input type="text" id="author" name="author" placeholder="Ingresa el autor" />
             <button type="button" id="btn-get-blueprints">Get blueprints</button>
+            <button type="button" id="btn-create">Create new blueprint</button>
+            <button type="button" id="btn-save">Save/Update</button>
+            <button type="button" id="btn-delete">Delete</button>
 
             <div>
                 <strong>Autor seleccionado:</strong>
@@ -30,13 +34,14 @@
                 <span id="selected-blueprint"></span>
             </div>
 
-            <canvas id="blueprint-canvas" width="500" height="400" style="border:1px solid #ccc;"></canvas>
+            <canvas id="blueprint-canvas" width="500" height="400" style="border:1px solid #ccc; touch-action:none;"></canvas>
 
             <table id="blueprints-table" class="table">
                 <thead>
                     <tr>
                         <th>Nombre del plano</th>
                         <th>Número de puntos</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="blueprints-tbody"></tbody>

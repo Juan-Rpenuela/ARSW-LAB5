@@ -47,6 +47,10 @@ public class BlueprintsServices {
         }
     }
     
+    public void updateBlueprint(Blueprint bp) throws BlueprintNotFoundException{
+        bpp.updateBlueprint(bp);
+    }
+    
     public Set<Blueprint> getAllBlueprints(){
         Set<Blueprint> blueprints = bpp.getAllBlueprints();
         Set<Blueprint> filteredBlueprints = new java.util.HashSet<>();
@@ -81,6 +85,10 @@ public class BlueprintsServices {
             filteredBlueprints.add(blueprintFilter.filter(bp));
         }
         return filteredBlueprints;
+    }
+    
+    public void deleteBlueprint(String author, String name) throws BlueprintNotFoundException{
+        bpp.deleteBlueprint(author, name);
     }
     
 }

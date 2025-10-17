@@ -65,14 +65,23 @@ public class BlueprintApiController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.PUT)
+    @PutMapping
     public ResponseEntity<Blueprint> updateBlueprint(@RequestBody Blueprint newbp){
         try {
-            blueprintService.addNewBlueprint(newbp);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (BlueprintPersistenceException e) {
-            Logger.getLogger(BlueprintApiController.class.getName()).log(Level.SEVERE, null, e);
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            blueprintService.updateBlueprint(newbp);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (BlueprintNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping(path = "/{author}/{bprintname}")
+    public ResponseEntity<Void> deleteBlueprint(@PathVariable String author, @PathVariable String bprintname){
+        try {
+            blueprintService.deleteBlueprint(author, bprintname);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (BlueprintNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
